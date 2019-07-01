@@ -5,6 +5,28 @@ from sklearn.metrics import accuracy_score
 from titanic import preprocessing
 
 
+def train_data_ex(df):
+    train_x = df[
+        ['Pclass', 'Sex', 'Age', 'Parch', 'Fare', 'Embarked',
+         'Name_length', 'Has_Cabin', 'FamilySize', 'IsAlone', 'Title']].values
+    train_y = df["Survived"].values
+
+    # 学習データとテストデータに分割
+    (train_x, test_x, train_y, test_y) = train_test_split(train_x, train_y, test_size=0.6, random_state=42)
+
+    #
+    dtrain = xgb.DMatrix(train_x, label=train_y)
+
+    # パラメータ
+    param = {'max_depth': 3, 'learning_rate': 0.6, 'objective': 'binary:logistic'}
+    num_round = 2
+    bst = xgb.train(param, dtrain, num_round)
+    preds = bst.predict(xgb.DMatrix(test_x))
+    print(accuracy_score(preds.round(), test_y))
+
+    return bst
+
+
 def train_data(df):
     train_x = df[["Pclass", "Age", "Sex", "Fare", "SibSp", "Parch", "Embarked"]].values
     train_y = df["Survived"].values
@@ -27,6 +49,18 @@ def train_data(df):
 
 def predict(bst, df):
     return bst.predict(xgb.DMatrix(df))
+
+
+def main_ex():
+    train, test = preprocessing.get_data_ex()
+
+    test_features = test[['Pclass', 'Sex', 'Age', 'Parch', 'Fare', 'Embarked',
+                          'Name_length', 'Has_Cabin', 'FamilySize', 'IsAlone', 'Title']].values
+
+    bst = train_data_ex(train)
+    answer = predict(bst, test_features).round().astype(int)
+    submit_data = pd.Series(answer, name='Survived', index=test['PassengerId'])
+    submit_data.to_csv('/Users/main/PycharmProjects/kaggle/titanic/my_xgboost_two.csv', header=True)
 
 
 def main():
