@@ -57,15 +57,15 @@ def get_data_ex():
         dataset["Fare"] = dataset["Fare"].fillna(train["Fare"].median())
     train["CategoricalFare"] = pd.qcut(train["Fare"], 4)
 
-    # 年齢を5つのグループに分ける
-    for dataset in full_data:
-        age_avg = dataset["Age"].mean()
-        age_std = dataset["Age"].std()  # 標準偏差
-        age_null_count = dataset["Age"].isnull().sum()
-        age_null_random_list = np.random.randint(age_avg - age_std, age_avg + age_std, size=age_null_count)
-        dataset.loc[np.isnan(dataset["Age"]), "Age"] = age_null_random_list
-        dataset["Age"] = dataset["Age"].astype(int)
-    train["CategoricalAge"] = pd.cut(train["Age"], 5)
+    # # 年齢を5つのグループに分ける
+    # for dataset in full_data:
+    #     age_avg = dataset["Age"].mean()
+    #     age_std = dataset["Age"].std()  # 標準偏差
+    #     age_null_count = dataset["Age"].isnull().sum()
+    #     age_null_random_list = np.random.randint(age_avg - age_std, age_avg + age_std, size=age_null_count)
+    #     dataset.loc[np.isnan(dataset["Age"]), "Age"] = age_null_random_list
+    #     dataset["Age"] = dataset["Age"].astype(int)
+    # train["CategoricalAge"] = pd.cut(train["Age"], 5)
 
     # 名前を取り出す関数1
     def get_title(name):
@@ -96,6 +96,23 @@ def get_data_ex():
         dataset["Title"] = dataset["Title"].map(title_mapping)
         dataset["Title"] = dataset["Title"].fillna(0)
 
+        # 名前ごとに年齢の平均を算出
+        idx_1 = dataset["Title"] == 1
+        idx_2 = dataset["Title"] == 2
+        idx_3 = dataset["Title"] == 3
+        idx_4 = dataset["Title"] == 4
+        idx_5 = dataset["Title"] == 5
+        age_1 = dataset.loc[idx_1, "Age"]
+        age_2 = dataset.loc[idx_2, "Age"]
+        age_3 = dataset.loc[idx_3, "Age"]
+        age_4 = dataset.loc[idx_4, "Age"]
+        age_5 = dataset.loc[idx_5, "Age"]
+        dataset.loc[idx_1, "Age"].fillna(round(dataset.loc[idx_1, "Age"].dropna().mean()))
+        dataset.loc[idx_2, "Age"].fillna(round(dataset.loc[idx_2, "Age"].dropna().mean()))
+        dataset.loc[idx_3, "Age"].fillna(round(dataset.loc[idx_3, "Age"].dropna().mean()))
+        dataset.loc[idx_4, "Age"].fillna(round(dataset.loc[idx_4, "Age"].dropna().mean()))
+        dataset.loc[idx_5, "Age"].fillna(round(dataset.loc[idx_5, "Age"].dropna().mean()))
+
         # 出港地の3種類にラベル付
         dataset["Embarked"] = dataset["Embarked"].map({"S": 0, "C": 1, "Q": 2}).astype(int)
 
@@ -106,17 +123,18 @@ def get_data_ex():
         dataset.loc[dataset["Fare"] > 31, "Fare"] = 3
         dataset["Fare"] = dataset["Fare"].astype(int)
 
-        # 年齢を5つのグループに分ける
-        dataset.loc[dataset["Age"] <= 16, "Age"] = 0
-        dataset.loc[(dataset["Age"] > 16) & (dataset["Age"] <= 32), "Age"] = 1
-        dataset.loc[(dataset["Age"] > 32) & (dataset["Age"] <= 48), "Age"] = 2
-        dataset.loc[(dataset["Age"] > 48) & (dataset["Age"] <= 64), "Age"] = 3
-        dataset.loc[dataset["Age"] > 64, "Age"] = 4
+        # # 年齢を5つのグループに分ける
+        # dataset.loc[dataset["Age"] <= 16, "Age"] = 0
+        # dataset.loc[(dataset["Age"] > 16) & (dataset["Age"] <= 32), "Age"] = 1
+        # dataset.loc[(dataset["Age"] > 32) & (dataset["Age"] <= 48), "Age"] = 2
+        # dataset.loc[(dataset["Age"] > 48) & (dataset["Age"] <= 64), "Age"] = 3
+        # dataset.loc[dataset["Age"] > 64, "Age"] = 4
 
     # 必要ない特徴を削除
     drop_elements = ["PassengerId", "Name", "Ticket", "Cabin", "SibSp"]
     train = train.drop(drop_elements, axis=1)
-    train = train.drop(["CategoricalAge", "CategoricalFare"], axis=1)
+    # train = train.drop(["CategoricalAge", "CategoricalFare"], axis=1)
+    train = train.drop(["CategoricalFare"], axis=1)
     test = test.drop(drop_elements, axis=1)
 
     test["PassengerId"] = passengerId
